@@ -11,5 +11,5 @@ public interface UbicacionRepository extends JpaRepository<Ubicacion, Integer> {
 
     List<Ubicacion> findByNombreContainingIgnoreCase(String nombre);
 
-    List<Ubicacion> findByLatitudAndLongitud(String latitud, String longitud);
+    List<Ubicacion> findByLatitudAndLongitud(Double latitud, Double longitud);
 }

@@ -14,10 +14,10 @@ public class Ubicacion {
     private String nombre;
 
     @Column(name = "latitud", length = 100)
-    private String latitud;
+    private double latitud;
 
     @Column(name = "longitud", length = 100)
-    private String longitud;
+    private double longitud;
 
     @OneToMany(mappedBy = "ubicacion", fetch = FetchType.LAZY)
     private List<Clima> climas;
@@ -27,7 +27,7 @@ public class Ubicacion {
 
     public Ubicacion() {}
 
-    public Ubicacion(Integer idUbicacion, String nombre, String latitud, String longitud) {
+    public Ubicacion(Integer idUbicacion, String nombre, double latitud, double longitud) {
         this.idUbicacion = idUbicacion;
         this.nombre = nombre;
         this.latitud = latitud;
@@ -40,11 +40,11 @@ public class Ubicacion {
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public String getLatitud() { return latitud; }
-    public void setLatitud(String latitud) { this.latitud = latitud; }
+    public double getLatitud() { return latitud; }
+    public void setLatitud(double latitud) { this.latitud = latitud; }
 
-    public String getLongitud() { return longitud; }
-    public void setLongitud(String longitud) { this.longitud = longitud; }
+    public double getLongitud() { return longitud; }
+    public void setLongitud(double longitud) { this.longitud = longitud; }
 
     public List<Clima> getClimas() { return climas; }
     public void setClimas(List<Clima> climas) { this.climas = climas; }
