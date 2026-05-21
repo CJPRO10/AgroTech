@@ -30,7 +30,7 @@ public class UsuarioRequestDTO {
     private LocalDateTime fechaNacimiento;
 
     @NotBlank(message = "El rol es obligatorio")
-    private String Rol;
+    private String rol;
 
     public UsuarioRequestDTO() {}
 
@@ -52,6 +52,6 @@ public class UsuarioRequestDTO {
     public LocalDateTime getFechaNacimiento() { return fechaNacimiento; }
     public void setFechaNacimiento(LocalDateTime fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
 
-    public String getRol() { return Rol; }
-    public void setIdRol(String Rol) { this.Rol = Rol; }
+    public String getRol() { return rol; }
+    public void setIdRol(String rol) { this.rol = rol; }
 }
