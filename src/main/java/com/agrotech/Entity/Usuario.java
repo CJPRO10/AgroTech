@@ -2,11 +2,13 @@ package com.agrotech.Entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "usuarios")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class Usuario {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_usuario")
@@ -33,6 +35,9 @@ public class Usuario {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;
+
+    @Column(name = "activo", nullable = false)
+    private boolean activo = true;
 
     public Usuario() {}
 
@@ -69,13 +74,24 @@ public class Usuario {
     public LocalDateTime getFechaNacimiento() { return fechaNacimiento; }
     public void setFechaNacimiento(LocalDateTime fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
 
+    public boolean isActivo() { return activo; }
+    public void setActivo(boolean activo) { this.activo = activo; }
+
     public Rol getRol() { return rol; }
     public void setRol(Rol rol) { this.rol = rol; }
 
     @Override
     public String toString() {
-        return "Usuario{idUsuario=" + idUsuario + ", nombre='" + nombre + "', apellido='" + apellido +
-                "', correo='" + correo + "', telefono='" + telefono + "'}";
+        return "Usuario{" +
+                "idUsuario=" + idUsuario +
+                ", nombre='" + nombre + '\'' +
+                ", apellido='" + apellido + '\'' +
+                ", correo='" + correo + '\'' +
+                ", contrasena='" + contrasena + '\'' +
+                ", telefono='" + telefono + '\'' +
+                ", fechaNacimiento=" + fechaNacimiento +
+                ", rol=" + rol +
+                ", activo=" + activo +
+                '}';
     }
-
 }
