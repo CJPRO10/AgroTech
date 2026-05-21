@@ -1,0 +1,42 @@
+package com.agrotech.dto.request;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
+
+public class EditarPerfilRequestDTO {
+
+    private String nombre;
+
+    private String apellido;
+
+    @Email(message = "Formato de correo inválido")
+    private String correo;
+
+    private String telefono;
+
+    private LocalDateTime fechaNacimiento;
+
+    @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
+    private String contrasena;
+
+    public EditarPerfilRequestDTO() {}
+
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+
+    public String getApellido() { return apellido; }
+    public void setApellido(String apellido) { this.apellido = apellido; }
+
+    public String getCorreo() { return correo; }
+    public void setCorreo(String correo) { this.correo = correo; }
+
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
+
+    public LocalDateTime getFechaNacimiento() { return fechaNacimiento; }
+    public void setFechaNacimiento(LocalDateTime fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
+
+    public String getContrasena() { return contrasena; }
+    public void setContrasena(String contrasena) { this.contrasena = contrasena; }
+}
