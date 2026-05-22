@@ -8,7 +8,6 @@ import com.agrotech.mapper.SiembraMapper;
 import com.agrotech.repository.*;
 import com.agrotech.service.SiembraService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,111 +21,143 @@ public class SiembraServiceImpl implements SiembraService {
     private final SiembraMapper siembraMapper;
     private final EstadoCultivoRepository estadoCultivoRepository;
     private final SiembraEstadoCultivoRepository siembraEstadoCultivoRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final OperarioRepository operarioRepository;
+    private final AuxiliarRepository auxiliarRepository;
 
     public SiembraServiceImpl(SiembraRepository siembraRepository, FincaRepository fincaRepository,
-                              CultivoRepository cultivoRepository, SiembraMapper siembraMapper, EstadoCultivoRepository estadoCultivoRepository, SiembraEstadoCultivoRepository siembraEstadoCultivoRepository) {
+                              CultivoRepository cultivoRepository, SiembraMapper siembraMapper, EstadoCultivoRepository estadoCultivoRepository,
+                              SiembraEstadoCultivoRepository siembraEstadoCultivoRepository, UsuarioRepository usuarioRepository, OperarioRepository operarioRepository,
+                              AuxiliarRepository auxiliarRepository) {
         this.siembraRepository = siembraRepository;
         this.fincaRepository = fincaRepository;
         this.cultivoRepository = cultivoRepository;
         this.siembraMapper = siembraMapper;
         this.estadoCultivoRepository = estadoCultivoRepository;
         this.siembraEstadoCultivoRepository = siembraEstadoCultivoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.operarioRepository = operarioRepository;
+        this.auxiliarRepository = auxiliarRepository;
     }
 
-     @Override
-    public SiembraResponseDTO crear(SiembraRequestDTO siembraRequestDTO) {
-         Finca finca = fincaRepository.findById(siembraRequestDTO.getIdFinca())
-                 .orElseThrow(() -> new RuntimeException("Finca no encontrada con ID: " + siembraRequestDTO.getIdFinca()));
+    @Override
+    public SiembraResponseDTO crear(SiembraRequestDTO dto, String correo) {
+        List<Integer> idFincas = obtenerIdFincasAccesibles(correo);
 
-         Cultivo cultivo = cultivoRepository.findById(siembraRequestDTO.getIdCultivo())
-                 .orElseThrow(() -> new RuntimeException("Cultivo no encontrado con ID: " + siembraRequestDTO.getIdCultivo()));
+        Finca finca = fincaRepository.findById(dto.getIdFinca())
+                .orElseThrow(() -> new RuntimeException("Finca no encontrada: " + dto.getIdFinca()));
 
-         EstadoCultivo estado = estadoCultivoRepository.findById(siembraRequestDTO.getIdEstadoCultivo())
-                 .orElseThrow(() -> new RuntimeException("EstadoCultivo no encontrado con ID: " + siembraRequestDTO.getIdEstadoCultivo()));
+        if (!idFincas.contains(finca.getIdFinca())) {
+            throw new RuntimeException("No tienes acceso a esta finca");
+        }
 
-         if (siembraRequestDTO.getNumLote() < 1 || siembraRequestDTO.getNumLote() > finca.getNumLotes()) {
-                throw new RuntimeException("Número de lote inválido. Debe estar entre 1 y " + finca.getNumLotes());
-         }
+        Cultivo cultivo = cultivoRepository.findById(dto.getIdCultivo())
+                .orElseThrow(() -> new RuntimeException("Cultivo no encontrado: " + dto.getIdCultivo()));
 
-         Siembra siembra = new Siembra();
+        EstadoCultivo estado = estadoCultivoRepository.findById(dto.getIdEstadoCultivo())
+                .orElseThrow(() -> new RuntimeException("EstadoCultivo no encontrado: " + dto.getIdEstadoCultivo()));
 
-         siembra.setFinca(finca);
-         siembra.setCultivo(cultivo);
-         siembra.setNumLote(siembraRequestDTO.getNumLote());
-         siembraRepository.save(siembra);
+        if (dto.getNumLote() < 1 || dto.getNumLote() > finca.getNumLotes()) {
+            throw new RuntimeException("Número de lote inválido. Debe estar entre 1 y " + finca.getNumLotes());
+        }
 
-         SiembraEstadoCultivo estadoInicial = new SiembraEstadoCultivo(
-                 siembra, estado, siembraRequestDTO.getFechaEstado()
-         );
-         siembraEstadoCultivoRepository.save(estadoInicial);
+        Siembra siembra = new Siembra();
+        siembra.setFinca(finca);
+        siembra.setCultivo(cultivo);
+        siembra.setNumLote(dto.getNumLote());
+        siembraRepository.save(siembra);
 
-         SiembraResponseDTO response = siembraMapper.toResponse(siembra);
-            response.setNombreEstado(estado.getNombre());
-            response.setFechaEstado(siembraRequestDTO.getFechaEstado());
-            response.setFechaSiembra(siembraRequestDTO.getFechaEstado());
-            return response;
-     }
+        SiembraEstadoCultivo estadoInicial = new SiembraEstadoCultivo(
+                siembra, estado, dto.getFechaEstado()
+        );
+        siembraEstadoCultivoRepository.save(estadoInicial);
 
-     @Override
-     @Transactional(readOnly = true)
-     public List<SiembraResponseDTO> listar() {
-         return siembraRepository.findAllConUltimoEstado().stream()
-                 .map(this::buildResponse)
-                 .toList();
-     }
-
-     @Override
-     @Transactional(readOnly = true)
-     public List<SiembraResponseDTO> bucarPorFinca(Integer idFinca) {
-         return siembraRepository.findByFincaConUltimoEstado(idFinca).stream()
-                 .map(this::buildResponse)
-                 .toList();
-     }
+        SiembraResponseDTO response = siembraMapper.toResponse(siembra);
+        response.setNombreEstado(estado.getNombre());
+        response.setFechaEstado(dto.getFechaEstado());
+        response.setFechaSiembra(dto.getFechaEstado());
+        return response;
+    }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<SiembraResponseDTO> bucarPorCultivo(Integer idCultivo) {
+    public List<SiembraResponseDTO> listar(String correo) {
+        List<Integer> idFincas = obtenerIdFincasAccesibles(correo);
+        if (idFincas.isEmpty()) return List.of();
+        return idFincas.stream()
+                .flatMap(idFinca -> siembraRepository.findByFincaConUltimoEstado(idFinca).stream())
+                .map(this::buildResponse)
+                .toList();
+    }
+
+    @Override
+    public List<SiembraResponseDTO> buscarPorFinca(Integer idFinca, String correo) {
+        List<Integer> idFincas = obtenerIdFincasAccesibles(correo);
+        if (!idFincas.contains(idFinca)) {
+            throw new RuntimeException("No tienes acceso a esta finca");
+        }
+        return siembraRepository.findByFincaConUltimoEstado(idFinca).stream()
+                .map(this::buildResponse)
+                .toList();
+    }
+
+    @Override
+    public List<SiembraResponseDTO> buscarPorCultivo(Integer idCultivo, String correo) {
+        List<Integer> idFincas = obtenerIdFincasAccesibles(correo);
         return siembraRepository.findByCultivoConUltimoEstado(idCultivo).stream()
+                .filter(s -> idFincas.contains(s.getFinca().getIdFinca()))
                 .map(this::buildResponse)
                 .toList();
     }
 
-     @Override
-     @Transactional(readOnly = true)
-     public List<SiembraResponseDTO> buscarPorFincaYCultivo(Integer idFinca, Integer idCultivo) {
-         return siembraRepository.findByFincaCultivoYUltimoEstado(idFinca, idCultivo).stream()
-                 .map(this::buildResponse)
-                 .toList();
-     }
-
-     @Override
-     @Transactional(readOnly = true)
-     public List<SiembraResponseDTO> buscarPorFincaYLote(Integer idFinca, Integer numLote) {
-         return siembraRepository.findByFincaAndNumLoteConUltimoEstado(idFinca, numLote).stream()
-                 .map(this::buildResponse)
-                 .toList();
-     }
+    @Override
+    public List<SiembraResponseDTO> buscarPorFincaYCultivo(Integer idFinca, Integer idCultivo, String correo) {
+        List<Integer> idFincas = obtenerIdFincasAccesibles(correo);
+        if (!idFincas.contains(idFinca)) {
+            throw new RuntimeException("No tienes acceso a esta finca");
+        }
+        return siembraRepository.findByFincaCultivoYUltimoEstado(idFinca, idCultivo).stream()
+                .map(this::buildResponse)
+                .toList();
+    }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<SiembraResponseDTO> buscarPorEstado(Integer idEstado) {
+    public List<SiembraResponseDTO> buscarPorFincaYLote(Integer idFinca, Integer numLote, String correo) {
+        List<Integer> idFincas = obtenerIdFincasAccesibles(correo);
+        if (!idFincas.contains(idFinca)) {
+            throw new RuntimeException("No tienes acceso a esta finca");
+        }
+        return siembraRepository.findByFincaAndNumLoteConUltimoEstado(idFinca, numLote).stream()
+                .map(this::buildResponse)
+                .toList();
+    }
+
+    @Override
+    public List<SiembraResponseDTO> buscarPorEstado(Integer idEstado, String correo) {
+        List<Integer> idFincas = obtenerIdFincasAccesibles(correo);
         return siembraRepository.findByEstadoCultivoConUltimoEstado(idEstado).stream()
+                .filter(s -> idFincas.contains(s.getFinca().getIdFinca()))
                 .map(this::buildResponse)
                 .toList();
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<SiembraResponseDTO> buscarPorRangoFechas(LocalDateTime desde, LocalDateTime hasta) {
+    public List<SiembraResponseDTO> buscarPorRangoFechas(LocalDateTime desde, LocalDateTime hasta, String correo) {
+        List<Integer> idFincas = obtenerIdFincasAccesibles(correo);
         return siembraRepository.findByRangoFechaConUltimoEstado(desde, hasta).stream()
+                .filter(s -> idFincas.contains(s.getFinca().getIdFinca()))
                 .map(this::buildResponse)
                 .toList();
     }
 
     @Override
-    public SiembraResponseDTO actualizar(Integer idSiembra, SiembraUpdateRequestDTO dto) {
+    public SiembraResponseDTO actualizar(Integer idSiembra, SiembraUpdateRequestDTO dto, String correo) {
+        List<Integer> idFincas = obtenerIdFincasAccesibles(correo);
         Siembra siembra = siembraRepository.findById(idSiembra)
                 .orElseThrow(() -> new RuntimeException("Siembra no encontrada con ID: " + idSiembra));
+
+        if (!idFincas.contains(siembra.getFinca().getIdFinca())) {
+            throw new RuntimeException("No tienes acceso a esta siembra");
+        }
 
         if (dto.getNumLote() != null) {
             Finca finca = dto.getIdFinca() != null
@@ -152,18 +183,22 @@ public class SiembraServiceImpl implements SiembraService {
         return buildResponse(siembra);
     }
 
-     @Override
-    public void eliminar(Integer idSiembra) {
-        if (!siembraRepository.existsById(idSiembra)) {
-            throw new RuntimeException("Siembra no encontrada con ID: " + idSiembra);
+    @Override
+    public void eliminar(Integer idSiembra, String correo) {
+        List<Integer> idFincas = obtenerIdFincasAccesibles(correo);
+        Siembra siembra = siembraRepository.findById(idSiembra)
+                .orElseThrow(() -> new RuntimeException("Siembra no encontrada: " + idSiembra));
+
+        if (!idFincas.contains(siembra.getFinca().getIdFinca())) {
+            throw new RuntimeException("No tienes acceso a esta siembra");
         }
+
         siembraRepository.deleteById(idSiembra);
-     }
+    }
 
     private SiembraResponseDTO buildResponse(Siembra siembra) {
         SiembraResponseDTO response = siembraMapper.toResponse(siembra);
 
-        // Estado actual y su fecha
         if (siembra.getEstadosCultivo() != null && !siembra.getEstadosCultivo().isEmpty()) {
             siembra.getEstadosCultivo().stream()
                     .findFirst()
@@ -173,12 +208,47 @@ public class SiembraServiceImpl implements SiembraService {
                     });
         }
 
-        // Fecha de siembra (primer estado registrado)
         siembraEstadoCultivoRepository.findPrimerEstado(siembra.getIdSiembra())
                 .stream()
                 .findFirst()
                 .ifPresent(sec -> response.setFechaSiembra(sec.getFechaEstado()));
 
         return response;
+    }
+
+    private List<Integer> obtenerIdFincasAccesibles(String correo) {
+        Usuario usuario = usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        String rol = usuario.getRol().getNombre();
+
+        if ("PRODUCTOR".equals(rol)) {
+            return fincaRepository.findByProductor_IdUsuario(usuario.getIdUsuario())
+                    .stream()
+                    .map(Finca::getIdFinca)
+                    .toList();
+        }
+
+        if ("OPERARIO".equals(rol)) {
+            Operario operario = operarioRepository.findById(usuario.getIdUsuario())
+                    .orElseThrow(() -> new RuntimeException("Operario no encontrado"));
+            if (operario.getProductor() == null) return List.of();
+            return fincaRepository.findByProductor_IdUsuario(operario.getProductor().getIdUsuario())
+                    .stream()
+                    .map(Finca::getIdFinca)
+                    .toList();
+        }
+
+        if ("AUXILIAR".equals(rol)) {
+            Auxiliar auxiliar = auxiliarRepository.findById(usuario.getIdUsuario())
+                    .orElseThrow(() -> new RuntimeException("Auxiliar no encontrado"));
+            if (auxiliar.getProductor() == null) return List.of();
+            return fincaRepository.findByProductor_IdUsuario(auxiliar.getProductor().getIdUsuario())
+                    .stream()
+                    .map(Finca::getIdFinca)
+                    .toList();
+        }
+
+        return List.of();
     }
 }

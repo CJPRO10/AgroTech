@@ -6,6 +6,7 @@ import com.agrotech.service.SiembraEstadoCultivoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,32 +21,33 @@ public class SiembraEstadoCultivoController {
         this.siembraEstadoCultivoService = siembraEstadoCultivoService;
     }
 
-    // POST /api/siembras-estados
     @PostMapping
-    public ResponseEntity<SiembraEstadoCultivoResponseDTO> registrarEstadoCultivo(@Valid @RequestBody SiembraEstadoCultivoRequestDTO request){
-        return ResponseEntity.status(HttpStatus.CREATED).body(siembraEstadoCultivoService.registrarEstadoCultivo(request));
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO')")
+    public ResponseEntity<SiembraEstadoCultivoResponseDTO> registrarEstadoCultivo(@Valid @RequestBody SiembraEstadoCultivoRequestDTO request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(siembraEstadoCultivoService.registrarEstadoCultivo(request));
     }
 
-    // GET /api/siembras-estados/siembra/{idSiembra}
     @GetMapping("/siembra/{idSiembra}")
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO', 'AUXILIAR')")
     public ResponseEntity<List<SiembraEstadoCultivoResponseDTO>> listarPorSiembra(@PathVariable Integer idSiembra) {
         return ResponseEntity.ok(siembraEstadoCultivoService.listarPorSiembra(idSiembra));
     }
 
-    // GET /api/siembras-estados/siembra/{idSiembra}/actual
     @GetMapping("/siembra/{idSiembra}/actual")
-    public ResponseEntity<SiembraEstadoCultivoResponseDTO> obtenerEstadoCultivoActual(@PathVariable Integer idSiembra) {
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO', 'AUXILIAR')")
+    public ResponseEntity<SiembraEstadoCultivoResponseDTO> obtenerEstadoActual(@PathVariable Integer idSiembra) {
         return ResponseEntity.ok(siembraEstadoCultivoService.obtenerEstadoCultivoActual(idSiembra));
     }
 
-    // GET /api/siembras-estados/estado/{idEstadoCultivo}
     @GetMapping("/estado/{idEstadoCultivo}")
-    public ResponseEntity<List<SiembraEstadoCultivoResponseDTO>> listarPorEstadoCultivo(@PathVariable Integer idEstadoCultivo) {
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO', 'AUXILIAR')")
+    public ResponseEntity<List<SiembraEstadoCultivoResponseDTO>> listarPorEstado(@PathVariable Integer idEstadoCultivo) {
         return ResponseEntity.ok(siembraEstadoCultivoService.listarPorEstadoCultivo(idEstadoCultivo));
     }
 
-    // DELETE /api/siembras-estados/siembra/{idSiembra}/estado/{idEstadoCultivo}
     @DeleteMapping("/siembra/{idSiembra}/estado/{idEstadoCultivo}")
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO')")
     public ResponseEntity<Void> eliminarEstadoCultivo(@PathVariable Integer idSiembra, @PathVariable Integer idEstadoCultivo) {
         siembraEstadoCultivoService.eliminarEstadoCultivo(idSiembra, idEstadoCultivo);
         return ResponseEntity.noContent().build();
