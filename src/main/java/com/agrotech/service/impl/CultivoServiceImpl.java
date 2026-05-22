@@ -3,6 +3,7 @@ package com.agrotech.service.impl;
 import com.agrotech.Entity.Cultivo;
 import com.agrotech.Entity.TipoCultivo;
 import com.agrotech.dto.request.CultivoRequestDTO;
+import com.agrotech.dto.request.CultivoUpdateRequestDTO;
 import com.agrotech.dto.response.CultivoResponseDTO;
 import com.agrotech.mapper.CultivoMapper;
 import com.agrotech.repository.CultivoRepository;
@@ -40,13 +41,6 @@ public class CultivoServiceImpl implements CultivoService {
     }
 
     @Override
-    public CultivoResponseDTO buscarPorId(Integer id) {
-        Cultivo cultivo = cultivoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cultivo no encontrado con id: " + id));
-        return cultivoMapper.toResponse(cultivo);
-    }
-
-    @Override
     @Transactional(readOnly = true)
     public List<CultivoResponseDTO> buscarPorNombre(String nombre) {
         return cultivoRepository.findByNombreContainingIgnoreCase(nombre)
@@ -74,24 +68,19 @@ public class CultivoServiceImpl implements CultivoService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<CultivoResponseDTO> filtrarPorNombreTipo(String nombreTipo) {
-        return cultivoRepository.findByTipoCultivo_NombreContainingIgnoreCase(nombreTipo)
-                .stream()
-                .map(cultivoMapper::toResponse)
-                .toList();
-    }
-
-    @Override
-    public CultivoResponseDTO actualizar(Integer id, CultivoRequestDTO cultivoRequestDTO) {
+    public CultivoResponseDTO actualizar(Integer id, CultivoUpdateRequestDTO dto) {
         Cultivo cultivo = cultivoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cultivo no encontrado con id: " + id));
 
-        TipoCultivo tipo = tipoCultivoRepository.findById(cultivoRequestDTO.getIdTipoCultivo())
-                .orElseThrow(() -> new RuntimeException("TipoCultivo no encontrado con id: " + cultivoRequestDTO.getIdTipoCultivo()));
+        if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
+            cultivo.setNombre(dto.getNombre());
+        }
 
-        cultivo.setNombre(cultivoRequestDTO.getNombre());
-        cultivo.setTipoCultivo(tipo);
+        if (dto.getIdTipoCultivo() != null) {
+            TipoCultivo tipo = tipoCultivoRepository.findById(dto.getIdTipoCultivo())
+                    .orElseThrow(() -> new RuntimeException("TipoCultivo no encontrado con id: " + dto.getIdTipoCultivo()));
+            cultivo.setTipoCultivo(tipo);
+        }
 
         return cultivoMapper.toResponse(cultivoRepository.save(cultivo));
     }

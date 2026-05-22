@@ -1,11 +1,13 @@
 package com.agrotech.controller;
 
 import com.agrotech.dto.request.CultivoRequestDTO;
+import com.agrotech.dto.request.CultivoUpdateRequestDTO;
 import com.agrotech.dto.response.CultivoResponseDTO;
 import com.agrotech.service.CultivoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,48 +22,38 @@ public class CultivoController {
         this.cultivoService = cultivoService;
     }
 
-    // Crear Cultivo
-    // /api/cultivos
     @PostMapping
-    public ResponseEntity<CultivoResponseDTO> crearCultivo(@Valid @RequestBody CultivoRequestDTO cultivoRequestDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(cultivoService.crear(cultivoRequestDTO));
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<CultivoResponseDTO> crearCultivo(@Valid @RequestBody CultivoRequestDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(cultivoService.crear(dto));
     }
 
-    // Listar Cultivos
-    // /api/cultivos
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<CultivoResponseDTO>> listarCultivos() {
         return ResponseEntity.ok(cultivoService.listarTodos());
     }
 
-    /*
-    // Buscar por Tipo de Cultivo
-    // /api/cultivos/{id}
-    @GetMapping("/{id}")
-    public ResponseEntity<List<CultivoResponse>> buscarCultivoPorTipoCultivo(@PathVariable Integer idTipoCultivo) {
-        return ResponseEntity.ok(cultivoServicio.buscarPorTipo(idTipoCultivo));
+    @GetMapping("/nombre/{nombre}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<CultivoResponseDTO>> buscarPorNombre(@PathVariable String nombre) {
+        return ResponseEntity.ok(cultivoService.buscarPorNombre(nombre));
     }
 
-
-    // Buscar por nombre
-    // /api/cultivos?nombre=maiz
-    @GetMapping("/buscar")
-    public ResponseEntity<List<CultivoResponse>> buscarCultivoPorNombre(@RequestParam String nombre) {
-        return ResponseEntity.ok(cultivoServicio.buscarPorNombre(nombre));
+    @GetMapping("/tipo/{idTipoCultivo}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<CultivoResponseDTO>> buscarPorTipo(@PathVariable Integer idTipoCultivo) {
+        return ResponseEntity.ok(cultivoService.buscarPorTipo(idTipoCultivo));
     }
 
-     */
-
-    // Editar cultivo
-    // /api/cultivos/{id}
     @PutMapping("/{id}")
-    public ResponseEntity<CultivoResponseDTO> actualizarCultivo(@PathVariable Integer id, @Valid @RequestBody CultivoRequestDTO cultivoRequestDTO) {
-        return ResponseEntity.ok(cultivoService.actualizar(id, cultivoRequestDTO));
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<CultivoResponseDTO> actualizarCultivo(@PathVariable Integer id, @RequestBody CultivoUpdateRequestDTO dto) {
+        return ResponseEntity.ok(cultivoService.actualizar(id, dto));
     }
 
-    // Eliminar cultivo
-    // /api/cultivos/{id}
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<Void> eliminarCultivo(@PathVariable Integer id) {
         cultivoService.eliminar(id);
         return ResponseEntity.noContent().build();
