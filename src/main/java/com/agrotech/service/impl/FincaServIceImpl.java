@@ -3,6 +3,7 @@ package com.agrotech.service.impl;
 import com.agrotech.Entity.Finca;
 import com.agrotech.Entity.Productor;
 import com.agrotech.Entity.Ubicacion;
+import com.agrotech.Entity.Usuario;
 import com.agrotech.dto.request.FincaRequestDTO;
 import com.agrotech.dto.request.FincaUpdateRequestDTO;
 import com.agrotech.dto.response.FincaResponseDTO;
@@ -10,6 +11,7 @@ import com.agrotech.mapper.FincaMapper;
 import com.agrotech.repository.FincaRepository;
 import com.agrotech.repository.ProductorRepository;
 import com.agrotech.repository.UbicacionRepository;
+import com.agrotech.repository.UsuarioRepository;
 import com.agrotech.service.FincaServIce;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,89 +26,99 @@ public class FincaServIceImpl implements FincaServIce {
     private final ProductorRepository productorRepository;
     private final UbicacionRepository ubicacionRepository;
     private final FincaMapper fincaMapper;
+    private final UsuarioRepository usuarioRepository;
 
-    public FincaServIceImpl(FincaRepository fincaRepository, ProductorRepository productorRepository, UbicacionRepository ubicacionRepository, FincaMapper fincaMapper) {
+    public FincaServIceImpl(FincaRepository fincaRepository,
+                            ProductorRepository productorRepository,
+                            UbicacionRepository ubicacionRepository,
+                            FincaMapper fincaMapper,
+                            UsuarioRepository usuarioRepository) {
         this.fincaRepository = fincaRepository;
         this.productorRepository = productorRepository;
         this.ubicacionRepository = ubicacionRepository;
         this.fincaMapper = fincaMapper;
+        this.usuarioRepository = usuarioRepository;
     }
 
-    // Listar por productor
     @Override
-    public List<FincaResponseDTO> listarPorProductor(Integer idProductor) {
-        List<Finca> fincas = fincaRepository.findByProductor_IdUsuario(idProductor);
-        return fincas.stream()
+    public List<FincaResponseDTO> listarPorCorreo(String correo) {
+        Productor productor = obtenerProductor(correo);
+        return fincaRepository.findByProductor_IdUsuario(productor.getIdUsuario())
+                .stream()
                 .map(fincaMapper::toResponse)
                 .toList();
     }
 
-    // Listar fincas por id
     @Override
-    public FincaResponseDTO buscarPorId(Integer idFinca) {
-        Finca finca = fincaRepository.findById(idFinca)
-                .orElseThrow(() -> new RuntimeException("Finca no encontrada con ID: " + idFinca));
-        return fincaMapper.toResponse(finca);
+    public List<FincaResponseDTO> buscarPorNombre(String nombre, String correo) {
+        Productor productor = obtenerProductor(correo);
+        return fincaRepository.findByProductor_IdUsuario(productor.getIdUsuario())
+                .stream()
+                .filter(f -> f.getNombreFinca().toLowerCase().contains(nombre.toLowerCase()))
+                .toList()
+                .stream()
+                .map(fincaMapper::toResponse)
+                .toList();
     }
 
-    // Crear finca
     @Override
-    public FincaResponseDTO crear(Integer idProductor, FincaRequestDTO fincaRequestDTO) {
+    public FincaResponseDTO crear(String correo, FincaRequestDTO dto) {
+        Productor productor = obtenerProductor(correo);
+        Ubicacion ubicacion = ubicacionRepository.findById(dto.getIdUbicacion())
+                .orElseThrow(() -> new RuntimeException("Ubicación no encontrada: " + dto.getIdUbicacion()));
 
-        // Buscar productor
-        Productor productor = productorRepository.findById(idProductor)
-                .orElseThrow(() -> new RuntimeException("Productor no encontrada con ID: " + idProductor));
-
-        // Buscar ubicación
-        Ubicacion ubicacion = ubicacionRepository.findById(fincaRequestDTO.getIdUbicacion())
-                .orElseThrow(() -> new RuntimeException("Ubicación no encontrada con ID: " + fincaRequestDTO.getIdUbicacion()));
-
-        boolean existeFinca = fincaRepository.existsByNombreFincaAndProductor_IdUsuario(fincaRequestDTO.getNombreFinca(), idProductor);
-
+        boolean existeFinca = fincaRepository.existsByNombreFincaAndProductor_IdUsuario(
+                dto.getNombreFinca(), productor.getIdUsuario());
         if (existeFinca) {
-            throw new RuntimeException("Ya existe una finca con el mismo nombre para este productor");
+            throw new RuntimeException("Ya existe una finca con ese nombre");
         }
 
-        // convertir FincaRequest a Finca
-        Finca finca = fincaMapper.toEntity(fincaRequestDTO);
-
+        Finca finca = fincaMapper.toEntity(dto);
         finca.setProductor(productor);
         finca.setUbicacion(ubicacion);
-
-        // Guardar finca
-        finca = fincaRepository.save(finca);
-
-        // Convertir a FincaResponse
-        return fincaMapper.toResponse(finca);
+        return fincaMapper.toResponse(fincaRepository.save(finca));
     }
 
-    // Actualizar finca
     @Override
-    public FincaResponseDTO actualizar(Integer idFinca, Integer idProductor, FincaUpdateRequestDTO fincaUpdateRequestDTO) {
-        // Buscar finca
+    public FincaResponseDTO actualizar(Integer idFinca, String correo, FincaUpdateRequestDTO dto) {
+        Productor productor = obtenerProductor(correo);
         Finca finca = fincaRepository.findById(idFinca)
-                .orElseThrow(() -> new RuntimeException("Finca no encontrada con ID: " + idFinca));
+                .orElseThrow(() -> new RuntimeException("Finca no encontrada: " + idFinca));
+        validarPropietario(finca, productor);
 
-        if (fincaUpdateRequestDTO.getNombreFinca() != null && !fincaUpdateRequestDTO.getNombreFinca().equalsIgnoreCase(finca.getNombreFinca())) {
-            boolean existeFinca = fincaRepository.existsByNombreFincaAndProductor_IdUsuario(fincaUpdateRequestDTO.getNombreFinca(), idProductor);
-
-            if (existeFinca) {
-                throw new RuntimeException("Ya existe una finca con el mismo nombre para este productor");
+        if (dto.getNombreFinca() != null && !dto.getNombreFinca().equalsIgnoreCase(finca.getNombreFinca())) {
+            if (fincaRepository.existsByNombreFincaAndProductor_IdUsuario(
+                    dto.getNombreFinca(), productor.getIdUsuario())) {
+                throw new RuntimeException("Ya existe una finca con ese nombre");
             }
         }
 
-        fincaMapper.updateEntityFromRequest(fincaUpdateRequestDTO, finca);
-        fincaMapper.updateHectareas(fincaUpdateRequestDTO, finca);
-
-        Finca fincaActualizada = fincaRepository.save(finca);
-
-        return fincaMapper.toResponse(fincaActualizada);
+        fincaMapper.updateEntityFromRequest(dto, finca);
+        fincaMapper.updateHectareas(dto, finca);
+        return fincaMapper.toResponse(fincaRepository.save(finca));
     }
 
     @Override
-    public void eliminar(Integer idFinca) {
+    public void eliminar(Integer idFinca, String correo) {
+        Productor productor = obtenerProductor(correo);
         Finca finca = fincaRepository.findById(idFinca)
-                .orElseThrow(() -> new RuntimeException("Finca no encontrada con ID: " + idFinca));
+                .orElseThrow(() -> new RuntimeException("Finca no encontrada: " + idFinca));
+        validarPropietario(finca, productor);
         fincaRepository.delete(finca);
+    }
+
+    private Productor obtenerProductor(String correo) {
+        Usuario usuario = usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        if (!(usuario instanceof Productor productor)) {
+            throw new RuntimeException("El usuario no es un Productor");
+        }
+        return productor;
+    }
+
+    private void validarPropietario(Finca finca, Productor productor) {
+        if (!finca.getProductor().getIdUsuario().equals(productor.getIdUsuario())) {
+            throw new RuntimeException("No tienes permiso para acceder a esta finca");
+        }
     }
 }

@@ -8,18 +8,9 @@ import java.util.List;
 
 public interface FincaServIce {
 
-    // Consultar fincas del productor
-    List<FincaResponseDTO> listarPorProductor(Integer idProductor);
-
-    // Buscar una finca específica
-    FincaResponseDTO buscarPorId(Integer id);
-
-    // Crear finca
-    FincaResponseDTO crear(Integer idProductor, FincaRequestDTO fincaRequestDTO);
-
-    // Editar finca
-    FincaResponseDTO actualizar(Integer idFinca, Integer idProductor, FincaUpdateRequestDTO fincaUpdateRequestDTO);
-
-    // Eliminar finca
-    void eliminar(Integer id);
+    List<FincaResponseDTO> listarPorCorreo(String correo);
+    List<FincaResponseDTO> buscarPorNombre(String nombre, String correo);
+    FincaResponseDTO crear(String correo, FincaRequestDTO dto);
+    FincaResponseDTO actualizar(Integer idFinca, String correo, FincaUpdateRequestDTO dto);
+    void eliminar(Integer idFinca, String correo);
 }
