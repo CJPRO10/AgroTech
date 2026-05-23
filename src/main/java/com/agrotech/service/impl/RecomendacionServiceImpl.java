@@ -10,6 +10,7 @@ import com.agrotech.dto.response.RecomendacionResponseDTO;
 import com.agrotech.mapper.RecomendacionMapper;
 import com.agrotech.repository.*;
 import com.agrotech.service.ClimaService;
+import com.agrotech.service.NotificacionService;
 import com.agrotech.service.RecomendacionService;
 import com.agrotech.service.util.PromptBuilder;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ public class RecomendacionServiceImpl implements RecomendacionService {
     private final ClimaRepository climaRepository;
     private final UsuarioRepository usuarioRepository;
     private final OperarioRepository operarioRepository;
+    private final NotificacionService notificacionService;
 
     public RecomendacionServiceImpl(RecomendacionRepository recomendacionRepository,
                                     SiembraRepository siembraRepository,
@@ -47,7 +49,8 @@ public class RecomendacionServiceImpl implements RecomendacionService {
                                     GeminiService geminiService,PromptBuilder promptBuilder,
                                     ClimaRepository climaRepository,
                                     UsuarioRepository usuarioRepository,
-                                    OperarioRepository operarioRepository) {
+                                    OperarioRepository operarioRepository,
+                                    NotificacionService notificacionService) {
         this.recomendacionRepository = recomendacionRepository;
         this.siembraRepository = siembraRepository;
         this.recomendacionMapper = recomendacionMapper;
@@ -59,6 +62,7 @@ public class RecomendacionServiceImpl implements RecomendacionService {
         this.climaRepository = climaRepository;
         this.usuarioRepository = usuarioRepository;
         this.operarioRepository = operarioRepository;
+        this.notificacionService = notificacionService;
     }
 
     @Override
@@ -102,6 +106,7 @@ public class RecomendacionServiceImpl implements RecomendacionService {
         recomendacion.setAnomalia(null);
 
         recomendacion = recomendacionRepository.save(recomendacion);
+        notificacionService.generarNotificacionRecomendacion(recomendacion);
         return recomendacionMapper.toResponse(recomendacion);
     }
 
