@@ -11,33 +11,14 @@ import java.util.List;
 
 public interface AnomaliaService {
 
-    // Registrar anomalía - Generar recomendación automáticamente
-    AnomaliaResponseDTO registrar(AnomaliaRequestDTO dto);
-
-    // Consultar todas
-    List<AnomaliaResponseDTO> listar();
-
-    // Consultar por siembra
-    List<AnomaliaResponseDTO> listarPorSiembra(Integer idSiembra);
-
-    // Filtrar por tipo
-    List<AnomaliaResponseDTO> listarPorTipo(TipoAnomalia tipo);
-
-    // Filtrar por estado
-    List<AnomaliaResponseDTO> listarPorEstado(EstadoAnomalia estado);
-
-    // Filtrar por nivel de severidad
-    List<AnomaliaResponseDTO> listarPorNivelSeveridad(NivelSeveridad nivelSeveridad);
-
-    // Filtrar por rango de fechas
-    List<AnomaliaResponseDTO> listarPorRangoFechas(LocalDateTime desde, LocalDateTime hasta);
-
-    // Buscar por id
-    AnomaliaResponseDTO buscarPorId(Integer idAnomalia);
-
-    // Actualizar
-    AnomaliaResponseDTO actualizar(Integer idAnomalia, AnomaliaRequestDTO dto);
-
-    // Eliminar
-    void eliminar(Integer idAnomalia);
+    AnomaliaResponseDTO registrar(AnomaliaRequestDTO dto, String correo);
+    List<AnomaliaResponseDTO> listar(String correo);
+    List<AnomaliaResponseDTO> listarPorSiembra(Integer idSiembra, String correo);
+    List<AnomaliaResponseDTO> listarPorTipo(TipoAnomalia tipo, String correo);
+    List<AnomaliaResponseDTO> listarPorEstado(EstadoAnomalia estado, String correo);
+    List<AnomaliaResponseDTO> listarPorNivelSeveridad(NivelSeveridad nivelSeveridad, String correo);
+    List<AnomaliaResponseDTO> listarPorRangoFechas(LocalDateTime desde, LocalDateTime hasta, String correo);
+    AnomaliaResponseDTO buscarPorId(Integer idAnomalia, String correo);
+    AnomaliaResponseDTO actualizar(Integer idAnomalia, AnomaliaRequestDTO dto, String correo);
+    void eliminar(Integer idAnomalia, String correo);
 }
