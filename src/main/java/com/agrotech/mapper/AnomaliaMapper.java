@@ -19,16 +19,18 @@ public interface AnomaliaMapper {
     @Mapping(source = "siembra.idSiembra",        target = "idSiembra")
     @Mapping(source = "siembra.cultivo.nombre",   target = "nombreCultivo")
     @Mapping(source = "siembra.finca.nombreFinca",target = "nombreFinca")
-    @Mapping(target = "recomendacion",            ignore = true) // se setea manualmente en el servicio
+    @Mapping(target = "recomendacion",            ignore = true)
+    @Mapping(target = "registradoPor", ignore = true)
     AnomaliaResponseDTO toResponse(Anomalia anomalia);
 
     @Mapping(target = "idAnomalia",     ignore = true)
-    @Mapping(target = "siembra",        ignore = true) // se setea manualmente en el servicio
+    @Mapping(target = "siembra",        ignore = true)
     @Mapping(source = "nombre",         target = "nombre")
     @Mapping(source = "tipo",           target = "tipo")
     @Mapping(source = "estado",         target = "estado")
     @Mapping(source = "descripcion",    target = "descripcion")
     @Mapping(source = "nivelSeveridad", target = "nivelSeveridad")
     @Mapping(source = "fechaDeteccion", target = "fechaDeteccion")
+    @Mapping(target = "registradoPor", ignore = true)
     Anomalia toEntity(AnomaliaRequestDTO dto);
 }
