@@ -25,60 +25,72 @@ public class RecomendacionController {
     }
 
     @PostMapping("/solicitar")
-    @PreAuthorize("hasRole('PRODUCTOR')")
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO')")
     public ResponseEntity<RecomendacionResponseDTO> solicitar(@RequestBody RecomendacionRequestDTO dto, Authentication authentication) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(recomendacionService.solicitar(dto));
     }
 
     @GetMapping
-    public ResponseEntity<List<RecomendacionResponseDTO>> listar() {
-        return ResponseEntity.ok(recomendacionService.listar());
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO')")
+    public ResponseEntity<List<RecomendacionResponseDTO>> listar(Authentication authentication) {
+        return ResponseEntity.ok(recomendacionService.listar(authentication.getName()));
     }
 
     @GetMapping("/{idRecomendacion}")
-    public ResponseEntity<RecomendacionResponseDTO> buscarPorId(@PathVariable Integer idRecomendacion) {
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO')")
+    public ResponseEntity<RecomendacionResponseDTO> buscarPorId(@PathVariable Integer idRecomendacion, Authentication authentication) {
         return ResponseEntity.ok(recomendacionService.buscarPorId(idRecomendacion));
     }
 
+
     @GetMapping("/siembra/{idSiembra}")
-    public ResponseEntity<List<RecomendacionResponseDTO>> listarPorSiembra(@PathVariable Integer idSiembra) {
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO')")
+    public ResponseEntity<List<RecomendacionResponseDTO>> listarPorSiembra(@PathVariable Integer idSiembra, Authentication authentication) {
         return ResponseEntity.ok(recomendacionService.listarPorSiembra(idSiembra));
     }
 
     @GetMapping("/anomalia/{idAnomalia}")
-    public ResponseEntity<List<RecomendacionResponseDTO>> listarPorAnomalia(@PathVariable Integer idAnomalia) {
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO')")
+    public ResponseEntity<List<RecomendacionResponseDTO>> listarPorAnomalia(@PathVariable Integer idAnomalia, Authentication authentication) {
         return ResponseEntity.ok(recomendacionService.listarPorAnomalia(idAnomalia));
     }
 
+
     @GetMapping("/categoria/{categoria}")
-    public ResponseEntity<List<RecomendacionResponseDTO>> listarPorCategoria(@PathVariable String categoria) {
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO')")
+    public ResponseEntity<List<RecomendacionResponseDTO>> listarPorCategoria(@PathVariable String categoria, Authentication authentication) {
         return ResponseEntity.ok(recomendacionService.listarPorCategoria(categoria));
     }
 
     @GetMapping("/prioridad/{prioridad}")
-    public ResponseEntity<List<RecomendacionResponseDTO>> listarPorPrioridad(@PathVariable PrioridadRecomendacion prioridad) {
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO')")
+    public ResponseEntity<List<RecomendacionResponseDTO>> listarPorPrioridad(@PathVariable PrioridadRecomendacion prioridad, Authentication authentication) {
         return ResponseEntity.ok(recomendacionService.listarPorPrioridad(prioridad));
     }
 
     @GetMapping("/estado/{estado}")
-    public ResponseEntity<List<RecomendacionResponseDTO>> listarPorEstado(@PathVariable EstadoRecomendacion estado) {
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO')")
+    public ResponseEntity<List<RecomendacionResponseDTO>> listarPorEstado(@PathVariable EstadoRecomendacion estado, Authentication authentication) {
         return ResponseEntity.ok(recomendacionService.listarPorEstado(estado));
     }
 
     @GetMapping("/fechas")
-    public ResponseEntity<List<RecomendacionResponseDTO>> listarPorRangoFechas(@RequestParam LocalDateTime desde, @RequestParam(required = false) LocalDateTime hasta) {
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO')")
+    public ResponseEntity<List<RecomendacionResponseDTO>> listarPorFechas(@RequestParam LocalDateTime desde, @RequestParam(required = false) LocalDateTime hasta, Authentication authentication) {
         LocalDateTime fechaHasta = hasta != null ? hasta : LocalDateTime.now();
         return ResponseEntity.ok(recomendacionService.listarPorRangoFechas(desde, fechaHasta));
     }
 
     @PatchMapping("/{idRecomendacion}/ignorar")
-    public ResponseEntity<RecomendacionResponseDTO> ignorar(@PathVariable Integer idRecomendacion) {
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO')")
+    public ResponseEntity<RecomendacionResponseDTO> ignorar(@PathVariable Integer idRecomendacion, Authentication authentication) {
         return ResponseEntity.ok(recomendacionService.ignorar(idRecomendacion));
     }
 
     @PatchMapping("/{idRecomendacion}/reaccionar")
-    public ResponseEntity<RecomendacionResponseDTO> reaccionar(@PathVariable Integer idRecomendacion, @RequestParam String reaccion) {
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO')")
+    public ResponseEntity<RecomendacionResponseDTO> reaccionar(@PathVariable Integer idRecomendacion, @RequestParam String reaccion, Authentication authentication) {
         return ResponseEntity.ok(recomendacionService.reaccionar(idRecomendacion, reaccion));
     }
 }
