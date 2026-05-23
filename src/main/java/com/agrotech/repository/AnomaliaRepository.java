@@ -16,15 +16,10 @@ import java.util.List;
 public interface AnomaliaRepository extends JpaRepository<Anomalia, Integer> {
 
     List<Anomalia> findBySiembra_IdSiembra(Integer idSiembra);
-
-   // List<Anomalia> findByUsuario_IdUsuario(Integer idUsuario);
-
+    List<Anomalia> findByRegistradoPor_IdUsuario(Integer idUsuario);
     List<Anomalia> findByTipo(TipoAnomalia tipo);
-
     List<Anomalia> findByEstado(EstadoAnomalia estado);
-
     List<Anomalia> findByNivelSeveridad(NivelSeveridad nivelSeveridad);
-
     List<Anomalia> findByFechaDeteccionBetween(LocalDateTime desde, LocalDateTime hasta);
 
     @Query("SELECT a FROM Anomalia a WHERE a.siembra.idSiembra = :idSiembra " +
