@@ -7,6 +7,8 @@ import com.agrotech.dto.request.AsignarTareaRequestDTO;
 import com.agrotech.dto.request.TareaRequestDTO;
 import com.agrotech.dto.response.EjecucionTareaResponseDTO;
 import com.agrotech.dto.response.TareaResponseDTO;
+import com.agrotech.mapper.EjecucionTareaMapper;
+import com.agrotech.mapper.TareaMapper;
 import com.agrotech.repository.*;
 import com.agrotech.service.TareaService;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ public class TareaServiceImpl implements TareaService {
     private final OperarioRepository operarioRepository;
     private final AuxiliarRepository auxiliarRepository;
     private final TipoTareaRepository tipoTareaRepository;
+    private final TareaMapper tareaMapper;
+    private final EjecucionTareaMapper ejecucionTareaMapper;
 
     public TareaServiceImpl(TareaRepository tareaRepository,
                             EjecucionTareaRepository ejecucionTareaRepository,
@@ -34,7 +38,9 @@ public class TareaServiceImpl implements TareaService {
                             UsuarioRepository usuarioRepository,
                             OperarioRepository operarioRepository,
                             AuxiliarRepository auxiliarRepository,
-                            TipoTareaRepository tipoTareaRepository) {
+                            TipoTareaRepository tipoTareaRepository,
+                            TareaMapper tareaMapper,
+                            EjecucionTareaMapper ejecucionTareaMapper) {
         this.tareaRepository = tareaRepository;
         this.ejecucionTareaRepository = ejecucionTareaRepository;
         this.siembraRepository = siembraRepository;
@@ -42,6 +48,8 @@ public class TareaServiceImpl implements TareaService {
         this.operarioRepository = operarioRepository;
         this.auxiliarRepository = auxiliarRepository;
         this.tipoTareaRepository = tipoTareaRepository;
+        this.tareaMapper = tareaMapper;
+        this.ejecucionTareaMapper = ejecucionTareaMapper;
     }
 
 
@@ -246,12 +254,8 @@ public class TareaServiceImpl implements TareaService {
     }
 
     private TareaResponseDTO buildResponse(Tarea tarea) {
-        TareaResponseDTO response = new TareaResponseDTO();
-        response.setIdTarea(tarea.getIdTarea());
-        response.setTipoTarea(tarea.getTipoTarea().getNombre());
-        response.setDescripcion(tarea.getDescripcion());
-        response.setFechaLimite(tarea.getFechaLimite());
-        response.setIdSiembra(tarea.getSiembra().getIdSiembra());
+        TareaResponseDTO response = tareaMapper.toResponse(tarea);
+
         response.setNombreSiembra(tarea.getSiembra().getCultivo().getNombre()
                 + " - Lote " + tarea.getSiembra().getNumLote());
 
@@ -265,16 +269,15 @@ public class TareaServiceImpl implements TareaService {
     }
 
     private EjecucionTareaResponseDTO buildEjecucionResponse(EjecucionTarea e) {
-        EjecucionTareaResponseDTO dto = new EjecucionTareaResponseDTO();
-        dto.setIdEjecucion(e.getIdEjecucionTarea());
-        dto.setEstado(e.getEstado());
-        dto.setFechaEstado(e.getFechaEstado());
-        dto.setFechaLimite(e.getFechaLimite());
-        dto.setCreadoPor(e.getCreadoPor().getNombre() + " " + e.getCreadoPor().getApellido());
+        EjecucionTareaResponseDTO dto = ejecucionTareaMapper.toResponse(e);
+        if (e.getCreadoPor() != null) {
+            dto.setCreadoPor(e.getCreadoPor().getNombre() + " " + e.getCreadoPor().getApellido());
+        }
 
         if (e.getOperario() != null) {
             dto.setOperarioAsignado(e.getOperario().getNombre() + " " + e.getOperario().getApellido());
         }
+
         if (e.getAuxiliar() != null) {
             dto.setAuxiliarAsignado(e.getAuxiliar().getNombre() + " " + e.getAuxiliar().getApellido());
         }
@@ -282,12 +285,7 @@ public class TareaServiceImpl implements TareaService {
     }
 
     private TareaResponseDTO buildResponseParaOperario(Tarea tarea, Integer idOperario) {
-        TareaResponseDTO response = new TareaResponseDTO();
-        response.setIdTarea(tarea.getIdTarea());
-        response.setTipoTarea(tarea.getTipoTarea().getNombre());
-        response.setDescripcion(tarea.getDescripcion());
-        response.setFechaLimite(tarea.getFechaLimite());
-        response.setIdSiembra(tarea.getSiembra().getIdSiembra());
+        TareaResponseDTO response = tareaMapper.toResponse(tarea);
         response.setNombreSiembra(tarea.getSiembra().getCultivo().getNombre()
                 + " - Lote " + tarea.getSiembra().getNumLote());
 
@@ -300,18 +298,12 @@ public class TareaServiceImpl implements TareaService {
                 )
                 .map(this::buildEjecucionResponse)
                 .toList();
-
         response.setAsignaciones(asignaciones);
         return response;
     }
 
     private TareaResponseDTO buildResponseParaAuxiliar(Tarea tarea, Integer idAuxiliar) {
-        TareaResponseDTO response = new TareaResponseDTO();
-        response.setIdTarea(tarea.getIdTarea());
-        response.setTipoTarea(tarea.getTipoTarea().getNombre());
-        response.setDescripcion(tarea.getDescripcion());
-        response.setFechaLimite(tarea.getFechaLimite());
-        response.setIdSiembra(tarea.getSiembra().getIdSiembra());
+        TareaResponseDTO response = tareaMapper.toResponse(tarea);
         response.setNombreSiembra(tarea.getSiembra().getCultivo().getNombre()
                 + " - Lote " + tarea.getSiembra().getNumLote());
 
@@ -322,7 +314,6 @@ public class TareaServiceImpl implements TareaService {
                         e.getAuxiliar().getIdUsuario().equals(idAuxiliar))
                 .map(this::buildEjecucionResponse)
                 .toList();
-
         response.setAsignaciones(asignaciones);
         return response;
     }
