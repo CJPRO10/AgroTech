@@ -37,16 +37,16 @@ public class Anomalia {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_siembra")
     private Siembra siembra;
-/*
-    @ManyToOne(fetch = FetchType.LAZY)
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_usuario")
-    private Usuario usuario;
-*/
+    private Usuario registradoPor;
+
     public Anomalia() {}
 
     public Anomalia(Integer idAnomalia, String nombre, TipoAnomalia tipo, EstadoAnomalia estado,
                     String descripcion, NivelSeveridad nivelSeveridad, LocalDateTime fechaDeteccion,
-                    Siembra siembra) {
+                    Siembra siembra, Usuario registradoPor) {
         this.idAnomalia = idAnomalia;
         this.nombre = nombre;
         this.tipo = tipo;
@@ -55,7 +55,7 @@ public class Anomalia {
         this.nivelSeveridad = nivelSeveridad;
         this.fechaDeteccion = fechaDeteccion;
         this.siembra = siembra;
-        //this.usuario = usuario;
+        this.registradoPor = registradoPor;
     }
 
     public Integer getIdAnomalia() { return idAnomalia; }
@@ -81,10 +81,10 @@ public class Anomalia {
 
     public Siembra getSiembra() { return siembra; }
     public void setSiembra(Siembra siembra) { this.siembra = siembra; }
-/*
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
-*/
+
+    public Usuario getRegistradoPor() { return registradoPor; }
+    public void setRegistradoPor(Usuario usuario) { this.registradoPor = usuario; }
+
     @Override
     public String toString() {
         return "Anomalia{" +
