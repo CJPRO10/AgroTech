@@ -25,6 +25,9 @@ public class Siembra {
     @OneToMany(mappedBy = "siembra", fetch = FetchType.LAZY)
     private List<SiembraEstadoCultivo> estadosCultivo;
 
+    @OneToMany(mappedBy = "siembra", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Tarea> tareas;
+
     public Siembra() {}
 
     public Siembra(Integer idSiembra, Cultivo cultivo, Finca finca, Integer numLote) {
@@ -49,13 +52,11 @@ public class Siembra {
         this.estadosCultivo = estadosCultivo;
     }
 
-    public Integer getNumLote() {
-        return numLote;
-    }
+    public Integer getNumLote() { return numLote; }
+    public void setNumLote(Integer numLote) { this.numLote = numLote; }
 
-    public void setNumLote(Integer numLote) {
-        this.numLote = numLote;
-    }
+    public List<Tarea> getTareas() { return tareas; }
+    public void setTareas(List<Tarea> tareas) { this.tareas = tareas; }
 
     @Override
     public String toString() {
