@@ -8,6 +8,8 @@ import com.agrotech.dto.response.AnomaliaResponseDTO;
 import com.agrotech.service.AnomaliaService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -23,69 +25,66 @@ public class AnomaliaController {
         this.anomaliaService = anomaliaService;
     }
 
-    // Resgistrar anomalia
+
     @PostMapping
-    public ResponseEntity<AnomaliaResponseDTO> registrar(@RequestBody AnomaliaRequestDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(anomaliaService.registrar(dto));
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO', 'AUXILIAR')")
+    public ResponseEntity<AnomaliaResponseDTO> registrar(@RequestBody AnomaliaRequestDTO dto, Authentication authentication) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(anomaliaService.registrar(dto, authentication.getName()));
     }
 
-    // Consultar todas
     @GetMapping
-    public ResponseEntity<List<AnomaliaResponseDTO>> listar() {
-        return ResponseEntity.ok(anomaliaService.listar());
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO', 'AUXILIAR')")
+    public ResponseEntity<List<AnomaliaResponseDTO>> listar(Authentication authentication) {
+        return ResponseEntity.ok(anomaliaService.listar(authentication.getName()));
     }
 
-    // Consultar por id
     @GetMapping("/{idAnomalia}")
-    public ResponseEntity<AnomaliaResponseDTO> buscarPorId(@PathVariable Integer idAnomalia) {
-        return ResponseEntity.ok(anomaliaService.buscarPorId(idAnomalia));
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO', 'AUXILIAR')")
+    public ResponseEntity<AnomaliaResponseDTO> buscarPorId(@PathVariable Integer idAnomalia, Authentication authentication) {
+        return ResponseEntity.ok(anomaliaService.buscarPorId(idAnomalia, authentication.getName()));
     }
 
-    // Consultar por siembra
     @GetMapping("/siembra/{idSiembra}")
-    public ResponseEntity<List<AnomaliaResponseDTO>> listarPorSiembra(@PathVariable Integer idSiembra) {
-        return ResponseEntity.ok(anomaliaService.listarPorSiembra(idSiembra));
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO', 'AUXILIAR')")
+    public ResponseEntity<List<AnomaliaResponseDTO>> listarPorSiembra(@PathVariable Integer idSiembra, Authentication authentication) {
+        return ResponseEntity.ok(anomaliaService.listarPorSiembra(idSiembra, authentication.getName()));
     }
 
-    // Filtrar por tipo
     @GetMapping("/tipo/{tipo}")
-    public ResponseEntity<List<AnomaliaResponseDTO>> listarPorTipo(@PathVariable TipoAnomalia tipo) {
-        return ResponseEntity.ok(anomaliaService.listarPorTipo(tipo));
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO', 'AUXILIAR')")
+    public ResponseEntity<List<AnomaliaResponseDTO>> listarPorTipo(@PathVariable TipoAnomalia tipo, Authentication authentication) {
+        return ResponseEntity.ok(anomaliaService.listarPorTipo(tipo, authentication.getName()));
     }
 
-    // Filtrar por estado
     @GetMapping("/estado/{estado}")
-    public ResponseEntity<List<AnomaliaResponseDTO>> listarPorEstado(@PathVariable EstadoAnomalia estado) {
-        return ResponseEntity.ok(anomaliaService.listarPorEstado(estado));
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO', 'AUXILIAR')")
+    public ResponseEntity<List<AnomaliaResponseDTO>> listarPorEstado(@PathVariable EstadoAnomalia estado, Authentication authentication) {
+        return ResponseEntity.ok(anomaliaService.listarPorEstado(estado, authentication.getName()));
     }
 
-    // Filtrar por nivel de severidad
     @GetMapping("/severidad/{nivelSeveridad}")
-    public ResponseEntity<List<AnomaliaResponseDTO>> listarPorNivelSeveridad(@PathVariable NivelSeveridad nivelSeveridad) {
-        return ResponseEntity.ok(anomaliaService.listarPorNivelSeveridad(nivelSeveridad));
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO', 'AUXILIAR')")
+    public ResponseEntity<List<AnomaliaResponseDTO>> listarPorSeveridad(@PathVariable NivelSeveridad nivelSeveridad, Authentication authentication) {
+        return ResponseEntity.ok(anomaliaService.listarPorNivelSeveridad(nivelSeveridad, authentication.getName()));
     }
 
-    // Filtrar por rango de fechas
     @GetMapping("/fechas")
-    public ResponseEntity<List<AnomaliaResponseDTO>> listarPorRangoFechas(
-            @RequestParam LocalDateTime desde,
-            @RequestParam(required = false) LocalDateTime hasta) {
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO', 'AUXILIAR')")
+    public ResponseEntity<List<AnomaliaResponseDTO>> listarPorFechas(@RequestParam LocalDateTime desde, @RequestParam(required = false) LocalDateTime hasta, Authentication authentication) {
         LocalDateTime fechaHasta = hasta != null ? hasta : LocalDateTime.now();
-        return ResponseEntity.ok(anomaliaService.listarPorRangoFechas(desde, fechaHasta));
+        return ResponseEntity.ok(anomaliaService.listarPorRangoFechas(desde, fechaHasta, authentication.getName()));
     }
 
-    // Actualizar anomalia
     @PutMapping("/{idAnomalia}")
-    public ResponseEntity<AnomaliaResponseDTO> actualizar(
-            @PathVariable Integer idAnomalia,
-            @RequestBody AnomaliaRequestDTO dto) {
-        return ResponseEntity.ok(anomaliaService.actualizar(idAnomalia, dto));
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO', 'AUXILIAR')")
+    public ResponseEntity<AnomaliaResponseDTO> actualizar(@PathVariable Integer idAnomalia, @RequestBody AnomaliaRequestDTO dto, Authentication authentication) {
+        return ResponseEntity.ok(anomaliaService.actualizar(idAnomalia, dto, authentication.getName()));
     }
 
-    // Eliminar anomalia
     @DeleteMapping("/{idAnomalia}")
-    public ResponseEntity<Void> eliminar(@PathVariable Integer idAnomalia) {
-        anomaliaService.eliminar(idAnomalia);
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO', 'AUXILIAR')")
+    public ResponseEntity<Void> eliminar(@PathVariable Integer idAnomalia, Authentication authentication) {
+        anomaliaService.eliminar(idAnomalia, authentication.getName());
         return ResponseEntity.noContent().build();
     }
 }
