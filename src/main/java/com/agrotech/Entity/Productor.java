@@ -16,9 +16,6 @@ public class Productor extends Usuario{
     @OneToMany(mappedBy = "usuarioProductor", fetch = FetchType.LAZY)
     private List<Reporte> reportes;
 
-    @OneToMany(mappedBy = "usuarioProductor", fetch = FetchType.LAZY)
-    private List<Tarea> tareas;
-
     @OneToMany(mappedBy = "productor", fetch = FetchType.LAZY)
     private List<Operario> operarios;
 
@@ -35,9 +32,6 @@ public class Productor extends Usuario{
 
     public List<Reporte> getReportes() { return reportes; }
     public void setReportes(List<Reporte> reportes) { this.reportes = reportes; }
-
-    public List<Tarea> getTareas() { return tareas; }
-    public void setTareas(List<Tarea> tareas) { this.tareas = tareas; }
 
     public List<Operario> getOperarios() { return operarios; }
     public void setOperarios(List<Operario> operarios) { this.operarios = operarios; }
