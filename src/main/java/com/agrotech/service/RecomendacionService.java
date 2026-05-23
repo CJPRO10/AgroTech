@@ -10,37 +10,16 @@ import java.util.List;
 
 public interface RecomendacionService {
 
-   // Solicitar recomendación
     RecomendacionResponseDTO solicitar(RecomendacionRequestDTO dto);
-
-    // Consultar todas
-    List<RecomendacionResponseDTO> listar();
-
-    // Consultar por siembra
+    List<RecomendacionResponseDTO> listar(String correo);
     List<RecomendacionResponseDTO> listarPorSiembra(Integer idSiembra);
-
-    // Consultar por anomalía
     List<RecomendacionResponseDTO> listarPorAnomalia(Integer idAnomalia);
-
-    // Filtrar por categoría
     List<RecomendacionResponseDTO> listarPorCategoria(String categoria);
-
-    // Filtrar por prioridad
     List<RecomendacionResponseDTO> listarPorPrioridad(PrioridadRecomendacion prioridad);
-
-    // Filtrar por estado
     List<RecomendacionResponseDTO> listarPorEstado(EstadoRecomendacion estado);
-
-    // Filtrar por rango de fechas
     List<RecomendacionResponseDTO> listarPorRangoFechas(LocalDateTime desde, LocalDateTime hasta);
-
-    // Buscar por id
     RecomendacionResponseDTO buscarPorId(Integer idRecomendacion);
-
-    // Reaccionar a la recomendacion
     RecomendacionResponseDTO ignorar(Integer idRecomendacion);
     RecomendacionResponseDTO reaccionar(Integer idRecomendacion, String reaccion);
-
-    // Generar recomendaciones climaticas automaticas
     void generarRecomendacionesClimaticas();
 }
