@@ -19,12 +19,13 @@ public class AnomaliaResponseDTO {
     private String nombreCultivo;
     private String nombreFinca;
     private RecomendacionResponseDTO recomendacion;
+    private String registradoPor;
 
     public AnomaliaResponseDTO() {}
 
     public AnomaliaResponseDTO(Integer idAnomalia, String nombre, TipoAnomalia tipo, EstadoAnomalia estado,
                                String descripcion, NivelSeveridad nivelSeveridad, LocalDateTime fechaDeteccion,
-                               Integer idSiembra, String nombreCultivo, String nombreFinca, RecomendacionResponseDTO recomendacion) {
+                               Integer idSiembra, String nombreCultivo, String nombreFinca, RecomendacionResponseDTO recomendacion, String registradoPor) {
         this.idAnomalia = idAnomalia;
         this.nombre = nombre;
         this.tipo = tipo;
@@ -36,6 +37,7 @@ public class AnomaliaResponseDTO {
         this.nombreCultivo = nombreCultivo;
         this.nombreFinca = nombreFinca;
         this.recomendacion = recomendacion;
+        this.registradoPor = registradoPor;
     }
 
     public Integer getIdAnomalia() { return idAnomalia; }
@@ -70,6 +72,9 @@ public class AnomaliaResponseDTO {
 
     public RecomendacionResponseDTO getRecomendacion() { return recomendacion; }
     public void setRecomendacion(RecomendacionResponseDTO recomendacion) { this.recomendacion = recomendacion; }
+
+    public String getRegistradoPor() { return registradoPor; }
+    public void setRegistradoPor(String registradoPor) { this.registradoPor = registradoPor; }
 
     @Override
     public String toString() {
