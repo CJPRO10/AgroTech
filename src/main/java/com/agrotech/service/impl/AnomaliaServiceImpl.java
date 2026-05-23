@@ -85,7 +85,6 @@ public class AnomaliaServiceImpl implements AnomaliaService {
         String rol = usuario.getRol().getNombre();
 
         if ("PRODUCTOR".equals(rol)) {
-            // Ve todas las anomalías de sus siembras
             return anomaliaRepository.findAll().stream()
                     .filter(a -> a.getSiembra().getFinca()
                             .getProductor().getIdUsuario().equals(usuario.getIdUsuario()))
@@ -94,7 +93,6 @@ public class AnomaliaServiceImpl implements AnomaliaService {
         }
 
         if ("OPERARIO".equals(rol)) {
-            // Ve las anomalías de las siembras de su productor
             Operario operario = operarioRepository.findById(usuario.getIdUsuario())
                     .orElseThrow(() -> new RuntimeException("Operario no encontrado"));
             if (operario.getProductor() == null) return List.of();
@@ -107,7 +105,6 @@ public class AnomaliaServiceImpl implements AnomaliaService {
         }
 
         if ("AUXILIAR".equals(rol)) {
-            // Ve las anomalías de las siembras de su productor
             Auxiliar auxiliar = auxiliarRepository.findById(usuario.getIdUsuario())
                     .orElseThrow(() -> new RuntimeException("Auxiliar no encontrado"));
             if (auxiliar.getProductor() == null) return List.of();
@@ -182,13 +179,10 @@ public class AnomaliaServiceImpl implements AnomaliaService {
         if (dto.getNivelSeveridad() != null) anomalia.setNivelSeveridad(dto.getNivelSeveridad());
         if (dto.getFechaDeteccion() != null) anomalia.setFechaDeteccion(dto.getFechaDeteccion());
 
-        // Guardar referencias antes del save
         Usuario registradoPor = anomalia.getRegistradoPor();
         Siembra siembra = anomalia.getSiembra();
 
         anomalia = anomaliaRepository.save(anomalia);
-
-        // Restaurar referencias después del save
         anomalia.setRegistradoPor(registradoPor);
         anomalia.setSiembra(siembra);
 
@@ -197,7 +191,6 @@ public class AnomaliaServiceImpl implements AnomaliaService {
 
         AnomaliaResponseDTO response = anomaliaMapper.toResponse(anomalia);
 
-        // Setear registradoPor manualmente
         if (registradoPor != null) {
             response.setRegistradoPor(registradoPor.getNombre() + " " + registradoPor.getApellido());
         }
@@ -214,12 +207,9 @@ public class AnomaliaServiceImpl implements AnomaliaService {
         anomaliaRepository.deleteById(idAnomalia);
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────
-
     private AnomaliaResponseDTO buildResponse(Anomalia anomalia) {
         AnomaliaResponseDTO response = anomaliaMapper.toResponse(anomalia);
 
-        // Setear registradoPor manualmente si no es null
         if (anomalia.getRegistradoPor() != null) {
             response.setRegistradoPor(
                     anomalia.getRegistradoPor().getNombre() + " " +
