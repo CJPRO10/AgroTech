@@ -8,6 +8,7 @@ import com.agrotech.mapper.ClimaMapper;
 import com.agrotech.repository.ClimaRepository;
 import com.agrotech.repository.UbicacionRepository;
 import com.agrotech.service.ClimaService;
+import com.agrotech.service.NotificacionService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
@@ -42,17 +43,20 @@ public class ClimaServiceImpl implements ClimaService {
     private final ClimaMapper climaMapper;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+    private final NotificacionService notificacionService;
 
     public ClimaServiceImpl(ClimaRepository climaRepository,
                             UbicacionRepository ubicacionRepository,
                             ClimaMapper climaMapper,
                             RestTemplate restTemplate,
-                            ObjectMapper objectMapper) {
+                            ObjectMapper objectMapper,
+                            NotificacionService notificacionService) {
         this.climaRepository = climaRepository;
         this.ubicacionRepository = ubicacionRepository;
         this.climaMapper = climaMapper;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
+        this.notificacionService = notificacionService;
     }
 
     @Override
@@ -95,6 +99,11 @@ public class ClimaServiceImpl implements ClimaService {
             clima.setPrecipitacion(precip);
             clima.setCondicion(condicion);
             clima = climaRepository.save(clima);
+
+            String alerta = evaluarAlerta(temperatura.doubleValue(), precip, condicion);
+            if (alerta != null) {
+                notificacionService.generarNotificacionClima(clima, alerta);
+            }
 
             return climaMapper.toResponse(clima);
         } catch (Exception e) {
@@ -180,7 +189,19 @@ public class ClimaServiceImpl implements ClimaService {
 
     @Override
     public String evaluarAlerta(double temperatura, float precipitacion, String condicion) {
-        return null;
+        if (temperatura > 35) {
+            return "Temperatura crítica de " + temperatura + "°C detectada. Riesgo de estrés hídrico en cultivos.";
+        }
+        if (temperatura < 10) {
+            return "Temperatura baja de " + temperatura + "°C detectada. Riesgo de heladas en cultivos.";
+        }
+        if (precipitacion > 50) {
+            return "Precipitación alta de " + precipitacion + "mm detectada. Riesgo de inundación.";
+        }
+        if (condicion.contains("Tormenta")) {
+            return "Tormenta detectada en la zona. Tome precauciones con los cultivos.";
+        }
+        return null; 
     }
 
     private Ubicacion obtenerUbicacion(Integer idUbicacion) {
