@@ -1,57 +1,52 @@
 package com.agrotech.Entity;
+
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "tareas")
 public class Tarea {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_tarea")
     private Integer idTarea;
 
-    @Column(name = "nombre", length = 250)
-    private String nombre;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_tipo_tarea", nullable = false)
+    private TipoTarea tipoTarea;
 
-    @Column(name = "descripcion", length = 250)
+    @Column(name = "descripcion", length = 500)
     private String descripcion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_usuario_productor")
-    private Productor usuarioProductor;
+    @Column(name = "fecha_limite", nullable = false)
+    private LocalDateTime fechaLimite;
 
-    @OneToMany(mappedBy = "tarea", fetch = FetchType.LAZY)
-    private List<EjecucionTarea> ejecucionesTareas;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_siembra", nullable = false)
+    private Siembra siembra;
+
+    @OneToMany(mappedBy = "tarea", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<EjecucionTarea> ejecuciones;
 
     public Tarea() {}
-
-    public Tarea(Integer idTarea, String nombre, String descripcion, Productor usuarioProductor) {
-        this.idTarea = idTarea;
-        this.nombre = nombre;
-        this.descripcion = descripcion;
-        this.usuarioProductor = usuarioProductor;
-    }
 
     public Integer getIdTarea() { return idTarea; }
     public void setIdTarea(Integer idTarea) { this.idTarea = idTarea; }
 
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
+    public TipoTarea getTipoTarea() { return tipoTarea; }
+    public void setTipoTarea(TipoTarea tipoTarea) { this.tipoTarea = tipoTarea; }
 
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    public Productor getUsuarioProductor() { return usuarioProductor; }
-    public void setUsuarioProductor(Productor usuarioProductor) { this.usuarioProductor = usuarioProductor; }
+    public LocalDateTime getFechaLimite() { return fechaLimite; }
+    public void setFechaLimite(LocalDateTime fechaLimite) { this.fechaLimite = fechaLimite; }
 
-    public List<EjecucionTarea> getEjecucionesTareas() { return ejecucionesTareas; }
-    public void setEjecucionesTareas(List<EjecucionTarea> ejecucionesTareas) {
-        this.ejecucionesTareas = ejecucionesTareas;
-    }
+    public Siembra getSiembra() { return siembra; }
+    public void setSiembra(Siembra siembra) { this.siembra = siembra; }
 
-    @Override
-    public String toString() {
-        return "Tarea{idTarea=" + idTarea + ", nombre='" + nombre +
-                "', descripcion='" + descripcion + "'}";
-    }
+    public List<EjecucionTarea> getEjecuciones() { return ejecuciones; }
+    public void setEjecuciones(List<EjecucionTarea> ejecuciones) { this.ejecuciones = ejecuciones; }
 }
