@@ -8,6 +8,7 @@ import com.agrotech.mapper.AnomaliaMapper;
 import com.agrotech.mapper.RecomendacionMapper;
 import com.agrotech.repository.*;
 import com.agrotech.service.AnomaliaService;
+import com.agrotech.service.NotificacionService;
 import com.agrotech.service.util.PromptBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ public class AnomaliaServiceImpl implements AnomaliaService {
     private final PromptBuilder promptBuilder;
     private final OperarioRepository operarioRepository;
     private final AuxiliarRepository auxiliarRepository;
+    private final NotificacionService notificacionService;
 
     public AnomaliaServiceImpl(AnomaliaRepository anomaliaRepository,
                                RecomendacionRepository recomendacionRepository,
@@ -39,7 +41,8 @@ public class AnomaliaServiceImpl implements AnomaliaService {
                                GeminiService geminiService,
                                PromptBuilder promptBuilder,
                                OperarioRepository operarioRepository,
-                               AuxiliarRepository auxiliarRepository) {
+                               AuxiliarRepository auxiliarRepository,
+                               NotificacionService notificacionService) {
         this.anomaliaRepository = anomaliaRepository;
         this.recomendacionRepository = recomendacionRepository;
         this.siembraRepository = siembraRepository;
@@ -50,6 +53,7 @@ public class AnomaliaServiceImpl implements AnomaliaService {
         this.promptBuilder = promptBuilder;
         this.operarioRepository = operarioRepository;
         this.auxiliarRepository = auxiliarRepository;
+        this.notificacionService = notificacionService;
     }
 
     @Override
@@ -73,6 +77,7 @@ public class AnomaliaServiceImpl implements AnomaliaService {
         AnomaliaResponseDTO response = anomaliaMapper.toResponse(anomalia);
         response.setRegistradoPor(usuario.getNombre() + " " + usuario.getApellido());
         response.setRecomendacion(recomendacionMapper.toResponse(recomendacion));
+        notificacionService.generarNotificacionAnomalia(anomalia);
         return response;
     }
 
@@ -196,6 +201,7 @@ public class AnomaliaServiceImpl implements AnomaliaService {
         }
 
         response.setRecomendacion(recomendacionMapper.toResponse(recomendacion));
+        notificacionService.generarNotificacionAnomalia(anomalia);
         return response;
     }
 
