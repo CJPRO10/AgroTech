@@ -1,8 +1,6 @@
 package com.agrotech.service.impl;
 
-import com.agrotech.Entity.Clima;
-import com.agrotech.Entity.Recomendacion;
-import com.agrotech.Entity.Siembra;
+import com.agrotech.Entity.*;
 import com.agrotech.Entity.enums.EstadoAnomalia;
 import com.agrotech.Entity.enums.EstadoRecomendacion;
 import com.agrotech.Entity.enums.PrioridadRecomendacion;
@@ -37,6 +35,8 @@ public class RecomendacionServiceImpl implements RecomendacionService {
     private final GeminiService geminiService;
     private final PromptBuilder promptBuilder;
     private final ClimaRepository climaRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final OperarioRepository operarioRepository;
 
     public RecomendacionServiceImpl(RecomendacionRepository recomendacionRepository,
                                     SiembraRepository siembraRepository,
@@ -45,7 +45,9 @@ public class RecomendacionServiceImpl implements RecomendacionService {
                                     SiembraEstadoCultivoRepository siembraEstadoCultivoRepository,
                                     ClimaService climaService,
                                     GeminiService geminiService,PromptBuilder promptBuilder,
-                                    ClimaRepository climaRepository) {
+                                    ClimaRepository climaRepository,
+                                    UsuarioRepository usuarioRepository,
+                                    OperarioRepository operarioRepository) {
         this.recomendacionRepository = recomendacionRepository;
         this.siembraRepository = siembraRepository;
         this.recomendacionMapper = recomendacionMapper;
@@ -55,6 +57,8 @@ public class RecomendacionServiceImpl implements RecomendacionService {
         this.geminiService = geminiService;
         this.promptBuilder = promptBuilder;
         this.climaRepository = climaRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.operarioRepository = operarioRepository;
     }
 
     @Override
@@ -103,10 +107,35 @@ public class RecomendacionServiceImpl implements RecomendacionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<RecomendacionResponseDTO> listar() {
-        return recomendacionRepository.findAllOrderByFechaDesc().stream()
-                .map(recomendacionMapper::toResponse)
-                .toList();
+    public List<RecomendacionResponseDTO> listar(String correo) {
+        Usuario usuario = usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        String rol = usuario.getRol().getNombre();
+
+        if ("PRODUCTOR".equals(rol)) {
+            return recomendacionRepository.findAllOrderByFechaDesc().stream()
+                    .filter(r -> r.getSiembra() != null &&
+                            r.getSiembra().getFinca().getProductor()
+                                    .getIdUsuario().equals(usuario.getIdUsuario()))
+                    .map(recomendacionMapper::toResponse)
+                    .toList();
+        }
+
+        if ("OPERARIO".equals(rol)) {
+            Operario operario = operarioRepository.findById(usuario.getIdUsuario())
+                    .orElseThrow(() -> new RuntimeException("Operario no encontrado"));
+            if (operario.getProductor() == null) return List.of();
+            Integer idProductor = operario.getProductor().getIdUsuario();
+            return recomendacionRepository.findAllOrderByFechaDesc().stream()
+                    .filter(r -> r.getSiembra() != null &&
+                            r.getSiembra().getFinca().getProductor()
+                                    .getIdUsuario().equals(idProductor))
+                    .map(recomendacionMapper::toResponse)
+                    .toList();
+        }
+
+        return List.of();
     }
 
     @Override
@@ -188,12 +217,10 @@ public class RecomendacionServiceImpl implements RecomendacionService {
 
     @Override
     public void generarRecomendacionesClimaticas() {
-        // Agrupar siembras por ubicación
         List<Siembra> siembras = siembraRepository.findAll().stream()
                 .filter(s -> s.getFinca() != null && s.getFinca().getUbicacion() != null)
                 .toList();
 
-        // Agrupar por idUbicacion
         Map<Integer, List<Siembra>> siembrasPorUbicacion = siembras.stream()
                 .collect(Collectors.groupingBy(
                         s -> s.getFinca().getUbicacion().getIdUbicacion()
@@ -211,7 +238,6 @@ public class RecomendacionServiceImpl implements RecomendacionService {
 
                 if (clima == null) continue;
 
-                // Recopilar nombres unicos de cultivos
                 List<String> nombresCultivos = siembrasPorUbic.stream()
                         .map(s -> s.getCultivo().getNombre())
                         .distinct()
@@ -220,7 +246,6 @@ public class RecomendacionServiceImpl implements RecomendacionService {
                 String prompt = promptBuilder.construirPromptClimaGlobal(clima, nombresCultivos);
                 String respuesta = geminiService.generarRecomendacion(prompt);
 
-                // Parsear la respuesta y guardar una recomendación por siembra
                 Map<String, String> recomendacionesPorCultivo = parsearRespuestaGemini(respuesta);
 
                 for (Siembra siembra : siembrasPorUbic) {
@@ -248,7 +273,6 @@ public class RecomendacionServiceImpl implements RecomendacionService {
         }
     }
 
-    // Parsea la respuesta de Gemini al formato CULTIVO: x | RECOMENDACION: y
     private Map<String, String> parsearRespuestaGemini(String respuesta) {
         Map<String, String> resultado = new HashMap<>();
         if (respuesta == null || respuesta.isBlank()) return resultado;
