@@ -3,6 +3,8 @@ package com.agrotech.Entity;
 import jakarta.persistence.*;
 import java.util.List;
 import java.time.LocalDate;
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "climas")
 public class Clima {
@@ -18,7 +20,7 @@ public class Clima {
     private String condicion;
 
     @Column(name = "temperatura", precision = 10, scale = 2)
-    private java.math.BigDecimal temperatura;
+    private BigDecimal temperatura;
 
     @Column(name = "fecha_medicion")
     private LocalDate fechaMedicion;
