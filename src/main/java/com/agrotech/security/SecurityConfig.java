@@ -77,7 +77,7 @@ public class SecurityConfig {
 
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "http://localhost:3001"
+                "https://agrosmart-frontend-two.vercel.app"
         ));
 
         configuration.setAllowedMethods(Arrays.asList(
