@@ -45,6 +45,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
 
+                        .requestMatchers(HttpMethod.POST, "/api/ubicaciones").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/ubicaciones").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/ubicaciones/**").permitAll()
+
                         // Usuarios
                         .requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").hasRole("ADMINISTRADOR")
                         .requestMatchers(HttpMethod.PUT, "/api/usuarios/**").hasRole("ADMINISTRADOR")
