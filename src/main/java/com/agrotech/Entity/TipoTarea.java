@@ -1,5 +1,6 @@
 package com.agrotech.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -18,6 +19,7 @@ public class TipoTarea {
     @Column(name = "descripcion", length = 500)
     private String descripcion;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "tipoTarea", fetch = FetchType.LAZY)
     private List<Tarea> tareas;
 
