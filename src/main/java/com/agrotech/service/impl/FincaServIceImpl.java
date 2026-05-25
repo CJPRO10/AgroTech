@@ -42,11 +42,36 @@ public class FincaServIceImpl implements FincaServIce {
 
     @Override
     public List<FincaResponseDTO> listarPorCorreo(String correo) {
-        Productor productor = obtenerProductor(correo);
-        return fincaRepository.findByProductor_IdUsuario(productor.getIdUsuario())
-                .stream()
-                .map(fincaMapper::toResponse)
-                .toList();
+        Usuario usuario = usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // PRODUCTOR: sus propias fincas
+        if (usuario instanceof Productor productor) {
+            return fincaRepository.findByProductor_IdUsuario(productor.getIdUsuario())
+                    .stream()
+                    .map(fincaMapper::toResponse)
+                    .toList();
+        }
+
+        // OPERARIO: fincas del productor al que pertenece
+        if (usuario instanceof com.agrotech.Entity.Operario operario) {
+            if (operario.getProductor() == null) return List.of();
+            return fincaRepository.findByProductor_IdUsuario(operario.getProductor().getIdUsuario())
+                    .stream()
+                    .map(fincaMapper::toResponse)
+                    .toList();
+        }
+
+        // AUXILIAR: fincas del productor al que pertenece
+        if (usuario instanceof com.agrotech.Entity.Auxiliar auxiliar) {
+            if (auxiliar.getProductor() == null) return List.of();
+            return fincaRepository.findByProductor_IdUsuario(auxiliar.getProductor().getIdUsuario())
+                    .stream()
+                    .map(fincaMapper::toResponse)
+                    .toList();
+        }
+
+        return List.of();
     }
 
     @Override

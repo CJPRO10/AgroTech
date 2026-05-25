@@ -21,6 +21,7 @@ public interface FincaMapper {
 
     // Finca -> FincaResponse
     @Mapping(source = "ubicacion.nombre", target = "nombreUbicacion") // Mapear el nombre de la ubicación
+    @Mapping(source = "ubicacion.idUbicacion", target = "idUbicacion")
     @Mapping(target = "hectareas", expression = "java(toDouble(finca.getHectareas()))") // Convertir BigDecimal a String
     FincaResponseDTO toResponse(Finca finca);
 

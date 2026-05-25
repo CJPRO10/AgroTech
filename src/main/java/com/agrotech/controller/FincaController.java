@@ -23,7 +23,7 @@ public class FincaController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('PRODUCTOR')")
+    @PreAuthorize("hasAnyRole('PRODUCTOR', 'OPERARIO', 'AUXILIAR')")
     public ResponseEntity<List<FincaResponseDTO>> listarMisFincas(Authentication authentication) {
         return ResponseEntity.ok(fincaService.listarPorCorreo(authentication.getName()));
     }

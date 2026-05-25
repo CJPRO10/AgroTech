@@ -199,15 +199,16 @@ public class SiembraServiceImpl implements SiembraService {
     private SiembraResponseDTO buildResponse(Siembra siembra) {
         SiembraResponseDTO response = siembraMapper.toResponse(siembra);
 
-        if (siembra.getEstadosCultivo() != null && !siembra.getEstadosCultivo().isEmpty()) {
-            siembra.getEstadosCultivo().stream()
-                    .findFirst()
-                    .ifPresent(sec -> {
-                        response.setNombreEstado(sec.getEstadoCultivo().getNombre());
-                        response.setFechaEstado(sec.getFechaEstado());
-                    });
-        }
+        // Último estado (el más reciente)
+        siembraEstadoCultivoRepository.findUltimoEstado(siembra.getIdSiembra())
+                .stream()
+                .findFirst()
+                .ifPresent(sec -> {
+                    response.setNombreEstado(sec.getEstadoCultivo().getNombre());
+                    response.setFechaEstado(sec.getFechaEstado());
+                });
 
+        // Primer estado (fecha de siembra original)
         siembraEstadoCultivoRepository.findPrimerEstado(siembra.getIdSiembra())
                 .stream()
                 .findFirst()
