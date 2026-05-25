@@ -61,6 +61,7 @@ public class SecurityConfig {
                         // Catálogos de solo lectura para todos
                         .requestMatchers(HttpMethod.GET, "/api/cultivos/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/estado-cultivo/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-tarea").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/tipos-tarea/**").authenticated()
 
                         .requestMatchers("/api/perfil/**").authenticated()
